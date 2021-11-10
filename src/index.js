@@ -10,19 +10,75 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find(user => user.username === username);
+
+  if (!user) {
+    return response.status(404).json({ error: 'Usuario não existe!' });
+  }
+
+  request.user = user;
+
+  next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if (!user) {
+    return response.status(404).json({ error: 'Usuario não existe!'})
+  }
+
+
+
+  if(!user.pro){
+    if(user.todos.length >= 10){
+      return response.status(403).json({error: "Quantidade de ToDo do Plano Free excedido!"});
+    }
+  }
+
+  return next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find(user => user.username === username);
+
+  if (!user) {
+    return response.status(404).json({ error: 'Usuario não existe!' });
+  }
+
+  if(validate(id)){
+    const todo = user.todos.find(todo => todo.id === id);
+
+    if(!todo){
+      return response.status(404).json({ error: 'Este ToDo não existe ou não pertence a este usuario!'});
+    }
+
+    request.todo = todo;
+  }else{
+    return response.status(400).json({ error: 'ID do ToDo não é valido!'});
+  }
+
+  request.user = user;
+  next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const user = users.find(user => user.id === id);
+
+  if (!user) {
+    return response.status(404).json({ error: 'Usuario não existe!' });
+  }
+
+  request.user = user;
+
+  next();
 }
 
 app.post('/users', (request, response) => {
